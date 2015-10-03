@@ -26,3 +26,7 @@
 *.exe
 *.out
 *.app
+
+#qtcreator
+*.pr[io]
+*.user
