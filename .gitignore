@@ -28,5 +28,6 @@
 *.app
 
 #qtcreator
-*.pr[io]
+*.pri
+*.pro
 *.user
