@@ -3,15 +3,16 @@
 #include <queue>
 #include <poll.h>
 #include <string>
+#include <memory>
 
 class Poller
 {
 public:
     Poller(struct pollfd* fd,int size,int timeout);
     ~Poller();
-    int poll(std::queue<struct inotify_event *>& events);
+    int poll(std::queue<std::shared_ptr<struct inotify_event>>& events);
 private:
-    void onRead(struct pollfd);
+    void onRead(struct pollfd,std::queue<std::shared_ptr<struct inotify_event>>& events);
     std::string maskToString(uint32_t mask);
 private:
     typedef std::vector<struct pollfd> PollFdList;

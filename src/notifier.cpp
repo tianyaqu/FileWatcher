@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <iostream>
 
-Notifier::Notifier():quit_(true)
+Notifier::Notifier():quit_(true),cb_(NULL)
 {
     inotifier_fd = inotify_init();
     assert(inotifier_fd != -1);
@@ -70,13 +70,25 @@ void Notifier::loop()
 {
     while(!quit_)
     {
+        std::cout<<"new line "<<std::endl;
         if(!eventQueue_.empty())
         {
-            //process();
+            std::cout<<eventQueue_.size()<<" "<<std::endl;
+            //process
+            if(cb_){
+                cb_(eventQueue_.front());
+            }
+
+            eventQueue_.pop();
         }
 
         poller_->poll(eventQueue_);
     }
+}
+
+void Notifier::registerCallBack(CallBack &cb)
+{
+    cb_ = cb;
 }
 
 void Notifier::start()

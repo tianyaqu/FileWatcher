@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/inotify.h>
 #include <iostream>
+#include <cstring>
 
 Poller::Poller(struct pollfd*fd,int size,int timeout=5000):fdSet_(fd,fd+size),timeout_(timeout)
 {
@@ -13,7 +14,7 @@ Poller::~Poller()
 
 }
 
-int Poller::poll(std::queue<struct inotify_event *>& events)
+int Poller::poll(std::queue<std::shared_ptr<struct inotify_event>>& events)
 {
     int result = ::poll((struct pollfd*)&fdSet_[0],fdSet_.size(),timeout_);
     if(result > 0 )
@@ -22,15 +23,15 @@ int Poller::poll(std::queue<struct inotify_event *>& events)
         {
             if(it->revents > 0)
             {
-                //events;
-                onRead(*it);
+                // read events;
+                onRead(*it,events);
             }
         }
     }
     return result;
 }
 
-void Poller::onRead(struct pollfd fd)
+void Poller::onRead(struct pollfd fd,std::queue<std::shared_ptr<struct inotify_event>>& events)
 {
     int bufsize;
     if (::ioctl(fd.fd, FIONREAD, &bufsize) < 0)
@@ -41,7 +42,7 @@ void Poller::onRead(struct pollfd fd)
     char * offset = NULL;
     struct inotify_event* event;
     int len;
-    while ((len = ::read(fd.fd, buffer, bufsize)) > 0)
+    if ((len = ::read(fd.fd, buffer, bufsize)) > 0)
     {
         offset = buffer;
         event = (struct inotify_event *) buffer;
@@ -49,8 +50,13 @@ void Poller::onRead(struct pollfd fd)
         {
             int tmp_len = sizeof(struct inotify_event) + event->len;
             event = (struct inotify_event *) (offset + tmp_len);
+
+            struct inotify_event *tmp = new (struct inotify_event);
+            std::memcpy(tmp,event,sizeof(struct inotify_event));
+            std::shared_ptr<struct inotify_event> event_ptr (tmp);
+            events.push(event_ptr);
             offset += tmp_len;
-            std::cout<<maskToString(event->mask);
+            //std::cout<<maskToString(event->mask);
         }
     }
 }
