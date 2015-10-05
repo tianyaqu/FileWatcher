@@ -14,7 +14,7 @@ Poller::~Poller()
 
 }
 
-int Poller::poll(std::queue<std::shared_ptr<struct inotify_event>>& events)
+int Poller::poll(std::queue<std::shared_ptr<WEvent>>& events)
 {
     int result = ::poll((struct pollfd*)&fdSet_[0],fdSet_.size(),timeout_);
     if(result > 0 )
@@ -31,7 +31,7 @@ int Poller::poll(std::queue<std::shared_ptr<struct inotify_event>>& events)
     return result;
 }
 
-void Poller::onRead(struct pollfd fd,std::queue<std::shared_ptr<struct inotify_event>>& events)
+void Poller::onRead(struct pollfd fd,std::queue<std::shared_ptr<WEvent>>& events)
 {
     int bufsize;
     if (::ioctl(fd.fd, FIONREAD, &bufsize) < 0)
@@ -51,9 +51,10 @@ void Poller::onRead(struct pollfd fd,std::queue<std::shared_ptr<struct inotify_e
             int tmp_len = sizeof(struct inotify_event) + event->len;
             event = (struct inotify_event *) (offset + tmp_len);
 
-            struct inotify_event *tmp = new (struct inotify_event);
-            std::memcpy(tmp,event,sizeof(struct inotify_event));
-            std::shared_ptr<struct inotify_event> event_ptr (tmp);
+            //struct inotify_event *tmp = new (struct inotify_event);
+            //std::memcpy(tmp,event,sizeof(struct inotify_event));
+            //std::shared_ptr<struct inotify_event> event_ptr (tmp);
+            std::shared_ptr<struct WEvent> event_ptr (new WEvent(event->wd,event->mask));
             events.push(event_ptr);
             offset += tmp_len;
             //std::cout<<maskToString(event->mask);

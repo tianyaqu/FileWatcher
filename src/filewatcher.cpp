@@ -27,14 +27,21 @@ void FileWatcher::loop()
     notifier_->start();
 }
 
- void FileWatcher::registerCallBack(CallBack& cb)
+ void FileWatcher::registerCreateCallBack(CallBack& cb)
  {
-    notifier_->registerCallBack(cb);
+    notifier_->registerCallBack(cb,"Create");
  }
 
- void FileWatcher::print_log(std::shared_ptr<inotify_event> event_ptr)
+ void FileWatcher::registerDeleteCallBack(CallBack& cb)
  {
-     std::cout<<maskToString(event_ptr->mask);
+    notifier_->registerCallBack(cb,"Delete");
+ }
+
+// void FileWatcher::print_log(std::shared_ptr<inotify_event> event_ptr)
+ void FileWatcher::print_log(std::shared_ptr<WEvent> event_ptr)
+ {
+     std::cout<<event_ptr->getMask()<<"\n";
+     std::cout<<maskToString(event_ptr->getMask());
  }
 
  std::string FileWatcher::maskToString(uint32_t mask) {

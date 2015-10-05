@@ -6,10 +6,10 @@
 int main()
 {
     FileWatcher fs;
-    fs.watch("aa");
-   typedef std::function<void(std::shared_ptr<struct inotify_event>)> CallBackh;
+    fs.watch(".");
+   typedef std::function<void(std::shared_ptr<WEvent>)> CallBackh;
     CallBackh c  = std::bind(&FileWatcher::print_log,&fs,std::placeholders::_1);
-    fs.registerCallBack(c);
+    fs.registerCreateCallBack(c);
     fs.loop();
     return 0;
 }

@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <iostream>
 
-Notifier::Notifier():quit_(true),cb_(NULL)
+Notifier::Notifier():quit_(true),createCb_(NULL),deleteCb_(NULL)
 {
     inotifier_fd = inotify_init();
     assert(inotifier_fd != -1);
@@ -71,12 +71,20 @@ void Notifier::loop()
     while(!quit_)
     {
         std::cout<<"new line "<<std::endl;
-        if(!eventQueue_.empty())
+        while(!eventQueue_.empty())
         {
-            std::cout<<eventQueue_.size()<<" "<<std::endl;
-            //process
-            if(cb_){
-                cb_(eventQueue_.front());
+            //std::cout<<eventQueue_.size()<<" "<<std::endl;
+
+            // general process
+            //system call back
+
+            //user call backs
+            if(createCb_){
+                createCb_(eventQueue_.front());
+            }
+            if(deleteCb_)
+            {
+                deleteCb_(eventQueue_.front());
             }
 
             eventQueue_.pop();
@@ -86,9 +94,15 @@ void Notifier::loop()
     }
 }
 
-void Notifier::registerCallBack(CallBack &cb)
+void Notifier::registerCallBack(CallBack &cb,const std::string& type)
 {
-    cb_ = cb;
+    if(type == "Create")
+    {
+        createCb_ = cb;
+    }else if(type == "Delete")
+    {
+        deleteCb_ = cb;
+    }
 }
 
 void Notifier::start()
